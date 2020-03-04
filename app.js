@@ -43,6 +43,11 @@ client.connect().then(()=>{
 
 app.use('/', indexRouter);
 
+// set CORS headers
+app.use(function(req,res,next){
+  res.header("Access-Control-Allow-Origin","http://localhost")
+});
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
