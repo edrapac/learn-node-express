@@ -65,8 +65,10 @@ Try and send a password reset for username `' OR '1'='1`
 * Cookies do not time out browser side
 * Server does not perform session destruction, auth token still associated with the user on the backend for whom it was issued
 
+* <i>SQL Injection note: passwords are bcrypt hashed, however if you are able to dump the sessions table, since the sessions are persistent theres no reason to go for the passwords as you can just simply use an auth token to authenticate as a user</i>
+
+<b>Cookie scope</b>
+* Session cookies are not scoped to a particular domain
+
 
 * Token currently not sent in hidden form field! CSRF is much easier in that case
- 
- 
-* No current methods for session destruction client/serverside 
