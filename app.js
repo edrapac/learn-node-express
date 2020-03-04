@@ -31,7 +31,8 @@ const client = new Client({
 })
 client.connect().then(()=>{
   client.query(`CREATE TABLE IF NOT EXISTS users (userid SERIAL PRIMARY KEY,username varchar(45) UNIQUE, password varchar(100));
-                CREATE TABLE IF NOT EXISTS sessions (userid INTEGER REFERENCES users(userid), token varchar(100));`, (err, res) => {
+                CREATE TABLE IF NOT EXISTS sessions (userid INTEGER REFERENCES users(userid), token varchar(100));
+                CREATE TABLE IF NOT EXISTS comments (userid INTEGER REFERENCES users(userid),comment text);`, (err, res) => {
     if (err) {
       console.log("Error initializing database: ", err);
     } else {

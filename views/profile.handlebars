@@ -1,3 +1,23 @@
 <h1>Hello {{user}}</h1>
 
-<img src="https://img.devrant.com/devrant/rant/r_166081_ogv74.jpg" onerror="javascript:alert('gethacked')"
+<img src="https://img.devrant.com/devrant/rant/r_166081_ogv74.jpg" onerror="javascript:alert('gethacked')">
+<br>
+
+<h2>Submit Comment:</h2>
+<form action="/newcomment" method="POST">
+    <textarea name="newcomment" id="newcomment" rows="4" cols="30">Submit a new comment here!</textarea>
+    <br><br>
+    <input type="radio" name="privatepost" id="privatepostradio">
+    <label for="privatepostradio">Private? Leave unchecked if public</label>
+    <input type="submit" value="Submit comment">
+</form>
+
+<h2>Past Comments:</h2>
+<br>
+<br>
+<h1>{{th}}</h1>
+<ul class="comments">
+    {{#each commentlist}}
+        <li>{{{this.comment}}}</li>
+    {{/each}}
+</ul>

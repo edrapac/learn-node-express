@@ -30,24 +30,45 @@ const authenticateMiddleware = async function(req,res,next) {
     
 
     // if (exists) {req.user=dbResponse.rows[0].username; next()}
-    console.log("Info log",info.rows.length);
     if(info.rows.length!=0){
       username = await client.query(`SELECT username from users where userid='${info.rows[0].userid}';`);
       req.username = username.rows[0].username;
+      req.id = info.rows[0].userid;
       next();
       return;
     }
-    else {
+    if (info.rows.length==0){
       res.redirect('/login');
     }
+  
   } 
-  
-  
+  else{
+    res.redirect('/login')
+  }
+    
 } 
 
+/*
+- Make a comments box that allows you to post a comment on your profile page - DONE
+- Add a dynamic URL parameter allowing you to view other profile pages
+  - router.get('/profile/:profileId' //req.params.profileId - DONE
+- [BONUS] Add a public/private option to your comments. Private comments should not show up when other people view your profile page
+- [BONUS] Make your comments vulnerable to stored XSS - Done
+- [BONUS] Create a stored XSS payload that makes the website vulnerable to DOM-based payload
+*/
+
 // Get Profile page 
-router.get('/profile',authenticateMiddleware, function(req, res, next) {
-  res.render('profile',{user:req.username});
+router.get('/profile',authenticateMiddleware, async function(req, res, next) {
+  let comments = await client.query(`SELECT comment FROM comments where userid='${req.id}';`)
+  console.log(comments.rows)
+  res.render('profile',{user:req.username,commentlist:comments.rows});
+}); 
+
+router.get('/profile/:id',authenticateMiddleware, async function(req, res, next) {
+  let username = await client.query(`SELECT username from users where userid='${req.params.id}';`)
+  let comments = await client.query(`SELECT comment FROM comments where userid='${req.params.id}';`)
+  console.log(comments.rows)
+  res.render('otheruser',{user:username.rows[0].username,commentlist:comments.rows});
 }); 
 
 /* GET home page. */
@@ -68,6 +89,10 @@ router.get('/test', async function(req, res, next) {
 // GET login page
 router.get('/login', function(req, res, next) {
   res.render('login');
+});
+
+router.get('/forgot', function(req, res, next) {
+  res.render('forgot');
 });
 
 // LOGIN function
@@ -98,7 +123,6 @@ router.post('/login', async function(req, res, next) {
   
 });
 
-// SQL injection, we see we can register without a password/username so ',''); SELECT pg_sleep(5);--
 router.post('/register', async function(req, res, next) {
   if(req.body.username && req.body.password){
     console.log("INSERT INTO users ( username, password ) VALUES ("+"'"+req.body.username+"'"+","+"'"+req.body.password+"'"+");");
@@ -120,10 +144,6 @@ router.post('/register', async function(req, res, next) {
   }
 });
 
-router.get('/forgot', function(req, res, next) {
-  res.render('forgot');
-});
-
 // Allows for reflected database stuff 
 
 router.post('/forgot', async function(req, res, next) {
@@ -135,6 +155,10 @@ router.post('/forgot', async function(req, res, next) {
   res.render('forgot_valid',{user:username_return});
 });
 
+router.post('/newcomment',authenticateMiddleware, async function(req, res, next){
+  var newcomment = await client.query(`INSERT INTO comments (userid,comment) VALUES ('${req.id}','${req.body.newcomment}');`)
+  res.redirect('/profile')
+});
 
 
 module.exports = router;
