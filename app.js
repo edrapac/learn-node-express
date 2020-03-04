@@ -40,28 +40,6 @@ client.connect().then(()=>{
   })
 })
 
-var authenticatedMiddleware = async function(req,res,next) {
-  // look up session cookie
-  if (req.cookies['authCookie']){ 
-    
-    //does session cookie exist?
-    var info = await client.query(`SELECT * from sessions where token='${req.cookies['authCookie']}';`);
-    
-
-    // if (exists) {req.user=dbResponse.rows[0].username; next()}
-    if(info.rows[0].length!=0){
-      username = await client.query(`SELECT username from users where userid='${info.rows[0].userid}';`);
-      req.username = username.rows[0].username; // set the username param to that of the looked up value for subsequent requests
-      next();
-      return;
-    }
-  } 
-  
-  
-}
-
-app.use(authenticatedMiddleware)
-
 
 app.use('/', indexRouter);
 

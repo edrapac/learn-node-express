@@ -36,15 +36,17 @@ const authenticateMiddleware = async function(req,res,next) {
       next();
       return;
     }
-  } 
+  } else {
+    res.send(401)
+  }
   
   
-}
+} 
 
 // Get Profile page 
 router.get('/profile',authenticateMiddleware, function(req, res, next) {
   res.render('profile',{user:req.username});
-});
+}); 
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
