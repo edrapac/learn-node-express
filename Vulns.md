@@ -42,7 +42,31 @@ Try and send a password reset for username `' OR '1'='1`
 
  test'; SELECT CASE WHEN ((SELECT password from users where username='admin'))='admin1' THEN (select pg_sleep(5)) ELSE NULL END;--
 
- ## Cookie vulns
+## Cookie vulns
 
- * Current cookie creation does not implement sufficient entropy, thus the cookies are brute forceable 
- * No current methods for session destruction client/serverside 
+### Boils down to 2 vulns, weakness in token generation or weakness in session token handling
+
+#### Weakness in token generation
+  <b>Predicatble tokens</b>
+ * Current cookie creation does not implement sufficient entropy, thus the cookies are brute forceable!
+ Cookie follows general pattern of `xyz$d$d$d$d$d` where `$d` represents a number 0-9
+ * Immediately noticeable pattern
+ 
+#### Weakness in session handling
+
+<b>Disclosure of Tokens on Network</b>
+* Not using HTTPS, application and client are sending session token over the network in plain text.
+
+<b>Vulnerable mapping of tokens to sessions</b>
+* Multiple valid tokens are allowed to be assigned concurrently to the same user account
+
+<b>Vulnerable session termination</b>
+* No logout function
+* Cookies do not time out browser side
+* Server does not perform session destruction, auth token still associated with the user on the backend for whom it was issued
+
+
+* Token currently not sent in hidden form field! CSRF is much easier in that case
+ 
+ 
+* No current methods for session destruction client/serverside 
