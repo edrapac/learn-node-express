@@ -30,15 +30,17 @@ const authenticateMiddleware = async function(req,res,next) {
     
 
     // if (exists) {req.user=dbResponse.rows[0].username; next()}
-    if(info.rows[0].length!=0){
+    console.log("Info log",info.rows.length);
+    if(info.rows.length!=0){
       username = await client.query(`SELECT username from users where userid='${info.rows[0].userid}';`);
       req.username = username.rows[0].username;
       next();
       return;
     }
-  } else {
-    res.redirect('/login');
-  }
+    else {
+      res.redirect('/login');
+    }
+  } 
   
   
 } 
@@ -72,13 +74,13 @@ router.get('/login', function(req, res, next) {
 router.post('/login', async function(req, res, next) {
   console.log('SELECT username, password FROM users WHERE username='+"'"+req.body.username+"'"+";");
   var is_user = await client.query(`SELECT userid,username, password FROM users WHERE username='${req.body.username}';`);
-  if (is_user.rows.length!=0){ // if the username exists we move on to comparing hashes
+  if (is_user.rows && is_user.rows.length!=0){ // if the username exists we move on to comparing hashes
     var passhash = is_user.rows[0].password;
 
     console.log('SELECT username, password FROM users WHERE username='+"'"+req.body.username+"'"+' AND password='+"'"+req.body.password+"'"+";");
     console.log(is_user);  
     if(is_user.rows && bcrypt.compareSync(req.body.password,passhash)){ // if the username and password combo returns a valid row, and that row is correct
-      var tokenstring = "xyz"+String(Math.random());
+      var tokenstring = "xyz"+String(Math.floor(Math.random()*100000));
       await client.query(`INSERT INTO sessions (userid, token) VALUES ('${is_user.rows[0].userid}','${tokenstring}')`); //sets token on login
       res.cookie('authCookie',tokenstring);
       res.redirect('profile');
