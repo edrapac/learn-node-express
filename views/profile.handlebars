@@ -1,4 +1,5 @@
-<h1>Hello {{user}}</h1>
+<h1>Hello {{{user}}}</h1>
+<h2>Nickname for user:</h2><p id="nicknameheader">{{{nickname}}}</p>
 
 <img src="https://img.devrant.com/devrant/rant/r_166081_ogv74.jpg" onerror="javascript:alert('gethacked')">
 <br>
@@ -12,12 +13,21 @@
     <input type="submit" value="Submit comment">
 </form>
 
+<script>
+        function selector(){
+            var nicknamevalue = document.getElementById("nicknameheader").innerHTML;
+            document.getElementById("quote").innerHTML=nicknamevalue;
+        }
+</script>
+<script>window.onload= selector;</script>
+<h2>Most Recent Comment:</h2>
+
+<div>
+    <p id="quote"></p>
+</div>
+
 <h2>Past Comments:</h2>
 <br>
 <br>
 <h1>{{th}}</h1>
-<ul class="comments">
-    {{#each commentlist}}
-        <li>{{{this.comment}}}</li>
-    {{/each}}
-</ul>
+<ul id="commentlist" class="comments">{{#each commentlist}}<li>{{this.comment}}</li>{{/each}}</ul>

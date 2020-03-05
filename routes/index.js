@@ -31,9 +31,10 @@ const authenticateMiddleware = async function(req,res,next) {
 
     // if (exists) {req.user=dbResponse.rows[0].username; next()}
     if(info.rows.length!=0){
-      username = await client.query(`SELECT username from users where userid='${info.rows[0].userid}';`);
+      username = await client.query(`SELECT username, usernickname from users where userid='${info.rows[0].userid}';`);
       req.username = username.rows[0].username;
       req.id = info.rows[0].userid;
+      req.usernickname = username.rows[0].usernickname;
       next();
       return;
     }
@@ -50,25 +51,48 @@ const authenticateMiddleware = async function(req,res,next) {
 
 /*
 - Make a comments box that allows you to post a comment on your profile page - DONE
-- Add a dynamic URL parameter allowing you to view other profile pages
+- Add a dynamic URL parameter allowing you to view other profile pages - DONE
   - router.get('/profile/:profileId' //req.params.profileId - DONE
-- [BONUS] Add a public/private option to your comments. Private comments should not show up when other people view your profile page
-- [BONUS] Make your comments vulnerable to stored XSS - Done
+  - ADD ERROR HANDLING FOR IF SOMEONE DOESNT HAVE COMMENTS - Done
+  - Error handling for navigating to a profile that doesnt exist - Done
+- [BONUS] Add a public/private option to your comments. Private comments should not show up when other people view your profile page - DONE
+- [BONUS] Make your comments vulnerable to stored XSS - DONE
 - [BONUS] Create a stored XSS payload that makes the website vulnerable to DOM-based payload
+// Username is a stored XSS, we need to display username for profile selecter
+//username is submitted as some kind of XSS 
+// new field in the page that basically says welcome to the page for "innerHTMLParseURL(username)"
+// 
 */
 
 // Get Profile page 
 router.get('/profile',authenticateMiddleware, async function(req, res, next) {
   let comments = await client.query(`SELECT comment FROM comments where userid='${req.id}';`)
   console.log(comments.rows)
-  res.render('profile',{user:req.username,commentlist:comments.rows});
+  res.render('profile',{user:req.username,commentlist:comments.rows,nickname:req.usernickname});
 }); 
 
-router.get('/profile/:id',authenticateMiddleware, async function(req, res, next) {
-  let username = await client.query(`SELECT username from users where userid='${req.params.id}';`)
-  let comments = await client.query(`SELECT comment FROM comments where userid='${req.params.id}';`)
-  console.log(comments.rows)
-  res.render('otheruser',{user:username.rows[0].username,commentlist:comments.rows});
+router.get('/profile/:username',authenticateMiddleware, async function(req, res, next) {
+  let username = await client.query(`SELECT username from users where username='${req.params.username}';`)
+  
+  if(username.rows.length>0){ // if the user exists
+    let comments = await client.query
+      (
+      `SELECT c.comment,c.private,c.userid,u.username FROM comments AS c INNER JOIN users AS u ON c.userid=u.userid WHERE u.username='${req.params.username}';`
+      );
+    let commentarr = comments.rows;
+    
+    var publicComments = commentarr.filter(function (item){
+      return (String(item.private) !== 'true'); // hides private comments
+    });
+    console.log(publicComments);
+    
+    res.render('otheruser',{user:username.rows[0].username,commentlist:publicComments});
+  }
+  
+  else{
+    next(createError(404)); // if the user doesnt exist
+  }
+  
 }); 
 
 /* GET home page. */
@@ -129,7 +153,7 @@ router.post('/register', async function(req, res, next) {
     try {
       var final_hash = await hashPassword(req.body.password);
       console.log(final_hash);
-      var db_response = await client.query(`INSERT INTO users ( username, password ) VALUES ('${req.body.username}','${final_hash}');`);
+      var db_response = await client.query(`INSERT INTO users ( username, password,usernickname ) VALUES ('${req.body.username}','${final_hash}','${req.body.usernickname}');`);
       res.redirect('/login');
     } 
     
@@ -144,8 +168,7 @@ router.post('/register', async function(req, res, next) {
   }
 });
 
-// Allows for reflected database stuff 
-
+// Allows for error based/classic SQL injection 
 router.post('/forgot', async function(req, res, next) {
   console.log(`SELECT * from users where username='${req.body.username}';`);
   var db_response = await client.query(`SELECT * from users where username='${req.body.username}';`);
@@ -156,7 +179,16 @@ router.post('/forgot', async function(req, res, next) {
 });
 
 router.post('/newcomment',authenticateMiddleware, async function(req, res, next){
-  var newcomment = await client.query(`INSERT INTO comments (userid,comment) VALUES ('${req.id}','${req.body.newcomment}');`)
+  
+  if(req.body.privatepost)
+  { // if post is private
+    var newcomment = await client.query(`INSERT INTO comments (userid,comment,private) VALUES ('${req.id}','${req.body.newcomment}','true');`);
+  }
+
+  else
+  { // if post is public
+    var newcomment = await client.query(`INSERT INTO comments (userid,comment,private) VALUES ('${req.id}','${req.body.newcomment}','false');`);
+  }
   res.redirect('/profile')
 });
 

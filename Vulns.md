@@ -72,3 +72,14 @@ Try and send a password reset for username `' OR '1'='1`
 
 
 * Token currently not sent in hidden form field! CSRF is much easier in that case
+
+## XSS
+
+### Stored XSS
+
+* Stored XSS possible in the comment section, with `Access-Control-Allow-Origin:*` CSRF is readily available.
+
+### Dom based
+
+<b>Dom Based - TLDr;</b>
+Data from a client/attacker controlled source is ultimately passed to an unsafe JS object that renders the input to the HTML using methods that support dynamic exection such as `eval()` or `innerHTML()`
