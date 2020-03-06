@@ -46,7 +46,8 @@ app.use('/', indexRouter);
 
 // set CORS headers
 app.use(function(req,res,next){
-  res.header("Access-Control-Allow-Origin","http://localhost")
+  res.set("Access-Control-Allow-Origin","http://localhost");
+  res.set("Cache-Control", "no-store");
 });
 
 // catch 404 and forward to error handler
