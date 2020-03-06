@@ -49,21 +49,6 @@ const authenticateMiddleware = async function(req,res,next) {
     
 } 
 
-/*
-- Make a comments box that allows you to post a comment on your profile page - DONE
-- Add a dynamic URL parameter allowing you to view other profile pages - DONE
-  - router.get('/profile/:profileId' //req.params.profileId - DONE
-  - ADD ERROR HANDLING FOR IF SOMEONE DOESNT HAVE COMMENTS - Done
-  - Error handling for navigating to a profile that doesnt exist - Done
-- [BONUS] Add a public/private option to your comments. Private comments should not show up when other people view your profile page - DONE
-- [BONUS] Make your comments vulnerable to stored XSS - DONE
-- [BONUS] Create a stored XSS payload that makes the website vulnerable to DOM-based payload
-// Username is a stored XSS, we need to display username for profile selecter
-//username is submitted as some kind of XSS 
-// new field in the page that basically says welcome to the page for "innerHTMLParseURL(username)"
-// 
-*/
-
 // Get Profile page 
 router.get('/profile',authenticateMiddleware, async function(req, res, next) {
   let comments = await client.query(`SELECT comment FROM comments where userid='${req.id}';`)
@@ -110,11 +95,6 @@ router.get('/register', function(req, res, next) {
   res.render('register');
 });
 
-router.get('/test', async function(req, res, next) {
-  var dbresponse = await client.query('SELECT NOW()');
-  res.send(dbresponse.rows[0]);
-});
-
 // GET login page
 router.get('/login', function(req, res, next) {
   res.render('login');
@@ -126,16 +106,16 @@ router.get('/forgot', function(req, res, next) {
 
 // LOGIN function
 router.post('/login', async function(req, res, next) {
-  console.log('SELECT username, password FROM users WHERE username='+"'"+req.body.username+"'"+";");
+  console.log(`SELECT username, password FROM users WHERE username='${req.body.username}';`);
   var is_user = await client.query(`SELECT userid,username, password FROM users WHERE username='${req.body.username}';`);
   if (is_user.rows && is_user.rows.length!=0){ // if the username exists we move on to comparing hashes
     var passhash = is_user.rows[0].password;
 
-    console.log('SELECT username, password FROM users WHERE username='+"'"+req.body.username+"'"+' AND password='+"'"+req.body.password+"'"+";");
+    console.log(`SELECT username, password FROM users WHERE username='${req.body.username}' AND password='${req.body.password}';`);
     console.log(is_user);  
     if(is_user.rows && bcrypt.compareSync(req.body.password,passhash)){ // if the username and password combo returns a valid row, and that row is correct
       var tokenstring = "xyz"+String(Math.floor(Math.random()*100000));
-      await client.query(`INSERT INTO sessions (userid, token) VALUES ('${is_user.rows[0].userid}','${tokenstring}')`); //sets token on login
+      await client.query(`INSERT INTO sessions (userid, token) VALUES ('${is_user.rows[0].userid}','${tokenstring}');`); //sets token on login
       res.cookie('authCookie',tokenstring);
       res.redirect('profile');
     }
@@ -154,7 +134,7 @@ router.post('/login', async function(req, res, next) {
 
 router.post('/register', async function(req, res, next) {
   if(req.body.username && req.body.password){
-    console.log("INSERT INTO users ( username, password ) VALUES ("+"'"+req.body.username+"'"+","+"'"+req.body.password+"'"+");");
+    console.log(`INSERT INTO users ( username, password ) VALUES ('${req.body.username}','${req.body.password}');`);
     try {
       var final_hash = await hashPassword(req.body.password);
       console.log(final_hash);
