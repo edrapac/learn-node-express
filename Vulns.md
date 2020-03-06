@@ -79,7 +79,40 @@ Try and send a password reset for username `' OR '1'='1`
 
 * Stored XSS possible in the comment section, with `Access-Control-Allow-Origin:*` CSRF is readily available.
 
-### Dom based
+### Dom based (Stored non-URL based)
 
 <b>Dom Based - TLDr;</b>
 Data from a client/attacker controlled source is ultimately passed to an unsafe JS object that renders the input to the HTML using methods that support dynamic exection such as `eval()` or `innerHTML()`
+
+* Register a new user with a nickname like `<script>alert(1)</script>`
+
+The nickname is then set as a request param which will be sent along with any subsequent authenticated request the user makes.
+
+Code for rendering the profile page looks like 
+```
+<h2>Nickname for user:</h2><p id="nicknameheader">{{{nickname}}}</p>
+...
+<script>
+        function selector(){
+            var nicknamevalue = document.getElementById("nicknameheader").innerHTML;
+            document.getElementById("quote").innerHTML=nicknamevalue;
+        }
+</script>
+<script>window.onload= selector;</script>
+...
+<div>
+    <p id="quote"></p>
+</div>
+```
+
+As you can see, the nickname param is being rendered to the DOM via the innerHTML() method which allows then for stored, dom based xss (in a technical sense)
+
+More work required to make this URL based.
+
+How would that work?
+
+If a user submitted value were stored and then reflected in the URL for all subsequent requests, and if that page also supported rendering to the HTML like above using a method like 
+```
+document.location.href.substring
+```
+To parse the URL and then render that value to the page's HTML
