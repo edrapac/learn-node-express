@@ -72,7 +72,12 @@ router.get('/profile',authenticateMiddleware, async function(req, res, next) {
 }); 
 
 router.get('/profile/:username',authenticateMiddleware, async function(req, res, next) {
-  let username = await client.query(`SELECT username from users where username='${req.params.username}';`)
+  if(req.params.username){
+    let username = await client.query(`SELECT username from users where username='${req.params.username}';`)
+  }
+  else{
+    res.redirect('/profile');
+  }
   
   if(username.rows.length>0){ // if the user exists
     let comments = await client.query
